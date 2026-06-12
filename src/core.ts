@@ -116,8 +116,17 @@ function positiveIntegerToOrdinalWords(n: number): string {
  * toWords(2550, { currency: true }) // 'රුපියල් දෙදහස් පන්සිය පනහ'
  */
 export function toWords(num: number, options: ToWordsOptions = {}): string {
+  if (typeof num !== 'number') {
+    throw new TypeError(`toWords expects a number, got ${typeof num}`);
+  }
+  if (Number.isNaN(num)) {
+    throw new TypeError('toWords expects a valid number, got NaN');
+  }
+  if (!Number.isFinite(num)) {
+    throw new RangeError('toWords expects a finite number, got Infinity');
+  }
   if (!Number.isInteger(num)) {
-    throw new RangeError('toWords only supports integers');
+    throw new RangeError(`toWords only supports integers, got ${num}`);
   }
   if (Math.abs(num) > MAX_VALUE) {
     throw new RangeError(`toWords only supports numbers up to ${MAX_VALUE}`);
@@ -171,6 +180,10 @@ const FUSED_SCALE_MAP = new Map<string, number>(
  * toNumber('රුපියල් දෙදහස් පන්සිය පනහ') // 2550
  */
 export function toNumber(text: string): number {
+  if (typeof text !== 'string') {
+    throw new TypeError(`toNumber expects a string, got ${typeof text}`);
+  }
+
   const tokens = text.trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) {
     throw new SyntaxError('cannot parse an empty string');

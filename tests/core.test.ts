@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toNumber, toWords } from '../src/index.js';
+import sinhalaNumwords, { toNumber, toWords } from '../src/index.js';
 
 describe('toWords', () => {
   it('converts zero', () => {
@@ -68,7 +68,29 @@ describe('toWords', () => {
 
   it('rejects non-integers and out-of-range numbers', () => {
     expect(() => toWords(1.5)).toThrow(RangeError);
+    expect(() => toWords(3.14)).toThrow(RangeError);
     expect(() => toWords(10_000_000_000)).toThrow(RangeError);
+    expect(() => toWords(Infinity)).toThrow(RangeError);
+    expect(() => toWords(-Infinity)).toThrow(RangeError);
+  });
+
+  it('rejects invalid input types', () => {
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toWords('hello')).toThrow(TypeError);
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toWords(null)).toThrow(TypeError);
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toWords(undefined)).toThrow(TypeError);
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toWords([350])).toThrow(TypeError);
+    expect(() => toWords(NaN)).toThrow(TypeError);
+  });
+});
+
+describe('default export', () => {
+  it('exposes toWords and toNumber as a single object', () => {
+    expect(sinhalaNumwords.toWords(350)).toBe(toWords(350));
+    expect(sinhalaNumwords.toNumber('තිස් පහ')).toBe(35);
   });
 });
 
@@ -112,5 +134,17 @@ describe('toNumber', () => {
 
   it('throws on unrecognized words', () => {
     expect(() => toNumber('not sinhala')).toThrow(SyntaxError);
+    expect(() => toNumber('350')).toThrow(SyntaxError);
+    expect(() => toNumber('තුන්සිය 50')).toThrow(SyntaxError);
+    expect(() => toNumber('')).toThrow(SyntaxError);
+  });
+
+  it('rejects invalid input types', () => {
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toNumber(350)).toThrow(TypeError);
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toNumber(null)).toThrow(TypeError);
+    // @ts-expect-error testing runtime validation of bad input
+    expect(() => toNumber(undefined)).toThrow(TypeError);
   });
 });
