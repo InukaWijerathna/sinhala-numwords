@@ -1,6 +1,6 @@
 {
   "name": "sinhala-numwords",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Convert numbers to Sinhala words and back — for payroll, invoices, cheques, and legal documents.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -37,7 +37,7 @@
     "currency"
   ],
   "license": "MIT",
-  "author": "Inuka Wijerathna",
+  "author": "Inuka Wijerathna (@InukaWijerathna)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/inukawijerathna/sinhala-numwords.git"
