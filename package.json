@@ -1,0 +1,50 @@
+{
+  "name": "sinhala-numwords",
+  "version": "0.1.0",
+  "description": "Convert numbers to Sinhala words and back — for payroll, invoices, cheques, and legal documents.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "vitest",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "sinhala",
+    "numbers",
+    "number-to-words",
+    "sri-lanka",
+    "i18n",
+    "localization",
+    "currency"
+  ],
+  "license": "MIT",
+  "author": "Inuka Wijerathna",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inukawijerathna/sinhala-numwords.git"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  }
+}
