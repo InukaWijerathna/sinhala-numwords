@@ -1,6 +1,7 @@
 {
   "name": "sinhala-numwords",
   "version": "1.0.0",
+  "homepage": "https://www.npmjs.com/package/sinhala-numwords",
   "description": "Convert numbers to Sinhala words and back — for payroll, invoices, cheques, and legal documents.",
   "type": "module",
   "main": "./dist/index.cjs",
