@@ -55,9 +55,9 @@ describe('toWords', () => {
   });
 
   it('supports the currency option', () => {
-    expect(toWords(2550, { currency: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි');
-    expect(toWords(0, { currency: true })).toBe('රුපියල් බිංදුවයි');
-    expect(toWords(101, { currency: true })).toBe('රුපියල් එකසිය එකයි');
+    expect(toWords(2550, { currency: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහ');
+    expect(toWords(0, { currency: true })).toBe('රුපියල් බිංදුව');
+    expect(toWords(101, { currency: true })).toBe('රුපියල් එකසිය එක');
   });
 
   it('supports the ordinal option', () => {
@@ -74,12 +74,24 @@ describe('toWords', () => {
     expect(toWords(-3.1, { ordinal: true })).toBe('ඍණ තුනයි දශම එක්වෙනි');
   });
 
+  it('supports decimal currency ordinals', () => {
+    expect(toWords(13.14, { currency: true, ordinal: true })).toBe('රුපියල් දහතුනයි ශත දාහතරවෙනි');
+    expect(toWords(2550.75, { currency: true, ordinal: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පස්වෙනි');
+    expect(toWords(-50.25, { currency: true, ordinal: true })).toBe('රුපියල් ඍණ පනහයි ශත විසි පස්වෙනි');
+  });
+
   it('supports the assert option', () => {
     expect(toWords(5, { assert: true })).toBe('පහයි');
     expect(toWords(-5, { assert: true })).toBe('ඍණ පහයි');
-    expect(toWords(3, { ordinal: true, assert: true })).toBe('තුන්වෙනියි');
     expect(toWords(13.14, { assert: true })).toBe('දහතුනයි දශම එකයි හතරයි');
     expect(toWords(5, { currency: true, assert: true })).toBe('රුපියල් පහයි');
+    expect(toWords(2550, { currency: true, assert: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි');
+    expect(toWords(2550.75, { currency: true, assert: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි');
+  });
+
+  it('ignores the assert option when ordinal is set', () => {
+    expect(toWords(3, { ordinal: true, assert: true })).toBe('තුන්වෙනි');
+    expect(toWords(13.14, { ordinal: true, assert: true })).toBe('දහතුනයි දශම එකයි හතරවෙනි');
   });
 
   it('supports decimal numbers', () => {
@@ -91,10 +103,10 @@ describe('toWords', () => {
   });
 
   it('supports decimal currency amounts as rupees and cents', () => {
-    expect(toWords(2550.75, { currency: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි');
-    expect(toWords(101.05, { currency: true })).toBe('රුපියල් එකසිය එකයි ශත පහයි');
-    expect(toWords(101.0, { currency: true })).toBe('රුපියල් එකසිය එකයි');
-    expect(toWords(-50.25, { currency: true })).toBe('රුපියල් ඍණ පනහයි ශත විසි පහයි');
+    expect(toWords(2550.75, { currency: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහ');
+    expect(toWords(101.05, { currency: true })).toBe('රුපියල් එකසිය එකයි ශත පහ');
+    expect(toWords(101.0, { currency: true })).toBe('රුපියල් එකසිය එක');
+    expect(toWords(-50.25, { currency: true })).toBe('රුපියල් ඍණ පනහයි ශත විසි පහ');
   });
 
   it('rejects out-of-range numbers', () => {

@@ -37,7 +37,11 @@
     "currency"
   ],
   "license": "MIT",
-  "author": "Inuka Wijerathna (@InukaWijerathna)",
+  "author": {
+    "name": "Inuka Wijerathna",
+    "email": "inukawijerathna210@gmail.com",
+    "url": "https://github.com/inukawijerathna"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/inukawijerathna/sinhala-numwords.git"

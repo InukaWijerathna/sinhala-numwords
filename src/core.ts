@@ -28,7 +28,7 @@ export interface ToWordsOptions {
   currency?: boolean;
   /** Render the number as an ordinal (1st, 2nd, 3rd, ...). */
   ordinal?: boolean;
-  /** Append the assertive particle 'යි' to the result, e.g. 'පහ' -> 'පහයි'. Ignored when `currency` is set, which already appends it. */
+  /** Append the assertive particle 'යි' to the result, e.g. 'පහ' -> 'පහයි'. Ignored when `currency` or `ordinal` is set, since both already produce a complete form. */
   assert?: boolean;
 }
 
@@ -165,21 +165,43 @@ function decimalOrdinalToWords(num: number): string {
 
 /**
  * Converts a decimal currency amount to words as rupees and cents,
- * rounding to the nearest cent.
+ * rounding to the nearest cent. The trailing 'යි' is only added when
+ * `assert` is set.
  *
  * @example
- * decimalCurrencyToWords(2550.75) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි'
- * decimalCurrencyToWords(101) // 'රුපියල් එකසිය එකයි'
+ * decimalCurrencyToWords(2550.75, false) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහ'
+ * decimalCurrencyToWords(2550.75, true) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි'
  */
-function decimalCurrencyToWords(num: number): string {
+function decimalCurrencyToWords(num: number, assert: boolean): string {
   const totalCents = Math.round(Math.abs(num) * 100);
   const rupees = Math.floor(totalCents / 100);
   const cents = totalCents % 100;
 
-  let words = `${cardinalWords(rupees)}${YI_SUFFIX}`;
-  if (cents > 0) {
-    words += ` ${CENTS} ${cardinalWords(cents)}${YI_SUFFIX}`;
-  }
+  let words = cents > 0
+    ? `${cardinalWords(rupees)}${YI_SUFFIX} ${CENTS} ${cardinalWords(cents)}`
+    : cardinalWords(rupees);
+  if (assert) words += YI_SUFFIX;
+  if (num < 0) words = `${NEGATIVE_PREFIX} ${words}`;
+
+  return `${CURRENCY_PREFIX} ${words}`;
+}
+
+/**
+ * Converts a decimal currency amount to its ordinal word form: the rupees,
+ * followed by 'ශත' and the cents rendered as an ordinal, rounding to the
+ * nearest cent.
+ *
+ * @example
+ * decimalCurrencyOrdinalToWords(13.14) // 'රුපියල් දහතුනයි ශත දාහතරවෙනි'
+ * decimalCurrencyOrdinalToWords(2550.75) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පස්වෙනි'
+ */
+function decimalCurrencyOrdinalToWords(num: number): string {
+  const totalCents = Math.round(Math.abs(num) * 100);
+  const rupees = Math.floor(totalCents / 100);
+  const cents = totalCents % 100;
+
+  const centsOrdinal = cents === 0 ? `${ZERO}${ORDINAL_SUFFIX}` : ordinalUpTo99(cents);
+  let words = `${cardinalWords(rupees)}${YI_SUFFIX} ${CENTS} ${centsOrdinal}`;
   if (num < 0) words = `${NEGATIVE_PREFIX} ${words}`;
 
   return `${CURRENCY_PREFIX} ${words}`;
@@ -221,8 +243,8 @@ export function toWords(num: number, options: ToWordsOptions = {}): string {
 
   if (options.ordinal) {
     if (!Number.isInteger(num)) {
-      const ordinal = decimalOrdinalToWords(num);
-      return finalize(options.currency ? `${CURRENCY_PREFIX} ${ordinal}` : ordinal, options);
+      const ordinal = options.currency ? decimalCurrencyOrdinalToWords(num) : decimalOrdinalToWords(num);
+      return finalize(ordinal, options);
     }
     if (num < 1) throw new RangeError('ordinal numbers must be 1 or greater');
     const ordinal = positiveIntegerToOrdinalWords(num);
@@ -230,18 +252,21 @@ export function toWords(num: number, options: ToWordsOptions = {}): string {
   }
 
   if (!Number.isInteger(num)) {
-    const decimal = options.currency ? decimalCurrencyToWords(num) : decimalToWords(num);
-    return finalize(decimal, options);
+    if (options.currency) return decimalCurrencyToWords(num, !!options.assert);
+    return finalize(decimalToWords(num), options);
   }
 
   const words = num < 0 ? `${NEGATIVE_PREFIX} ${cardinalWords(-num)}` : cardinalWords(num);
 
-  return finalize(options.currency ? `${CURRENCY_PREFIX} ${words}${YI_SUFFIX}` : words, options);
+  if (options.currency) {
+    return `${CURRENCY_PREFIX} ${options.assert ? `${words}${YI_SUFFIX}` : words}`;
+  }
+  return finalize(words, options);
 }
 
-/** Appends the assertive particle 'යි' when `options.assert` is set (and not already added by `currency`). */
+/** Appends the assertive particle 'යි' when `options.assert` is set (and not already added by `currency` or `ordinal`). */
 function finalize(result: string, options: ToWordsOptions): string {
-  return options.assert && !options.currency ? `${result}${YI_SUFFIX}` : result;
+  return options.assert && !options.currency && !options.ordinal ? `${result}${YI_SUFFIX}` : result;
 }
 
 /** Maps every cardinal word (standalone and combining forms) to its numeric value. */
