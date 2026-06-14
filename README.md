@@ -1,6 +1,6 @@
 # sinhala-numwords
 
-The first npm package to convert numbers to Sinhala (සිංහල) words — zero dependencies, TypeScript-first.
+The first npm package to convert numbers to Sinhala (සිංහල) words — zero dependencies, TypeScript-first.<br>
 Convert numbers (including decimals, currency amounts, and ordinals) to Sinhala words, and back — useful for payroll slips, invoices, cheques, and legal documents.
 
 ## Install
