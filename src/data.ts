@@ -100,7 +100,7 @@ export const TEN_COMBINING = 'දස';
 /** Full words for 100-900 (the hundreds digit already fuses with 'සිය'). */
 export const HUNDREDS = [
   '',
-  'එක්සිය',
+  'එකසිය',
   'දෙසිය',
   'තුන්සිය',
   'හාරසිය',
@@ -123,21 +123,32 @@ export const MAX_VALUE = 9_999_999_999;
 
 export const NEGATIVE_PREFIX = 'ඍණ';
 export const CURRENCY_PREFIX = 'රුපියල්';
+/** Appended to a word for emphasis, e.g. 'එක' -> 'එකයි'. Used for currency amounts and decimals. */
+export const YI_SUFFIX = 'යි';
+/** Separates the integer and fractional parts of a decimal number. */
+export const DECIMAL_POINT = 'දශම';
+/** Word for the currency subunit (cents), e.g. 'රුපියල් එකසිය එකයි ශත පහයි'. */
+export const CENTS = 'ශත';
 
 /** 1-9 ordinal suffixes used both standalone and inside compounds. */
 export const ORDINAL_UNIT = [
   '',
-  'එක්වැනි',
-  'දෙවැනි',
-  'තුන්වැනි',
-  'සිව්වැනි',
-  'පස්වැනි',
-  'හයවැනි',
-  'හත්වැනි',
-  'අටවැනි',
-  'නවවැනි',
+  'එක්වෙනි',
+  'දෙවෙනි',
+  'තුන්වෙනි',
+  'හතරවෙනි',
+  'පස්වෙනි',
+  'හයවෙනි',
+  'හත්වෙනි',
+  'අටවෙනි',
+  'නවවෙනි',
 ] as const;
 
-export const ORDINAL_FIRST = 'පළමුවැනි';
-export const ORDINAL_TEN = 'දහවැනි';
-export const ORDINAL_SUFFIX = 'වැනි';
+export const ORDINAL_FIRST = 'පළවෙනි';
+export const ORDINAL_TEN = 'දහවෙනි';
+export const ORDINAL_SUFFIX = 'වෙනි';
+
+/** Standalone word for 100, e.g. toWords(100) -> 'සියය'. */
+export const HUNDRED = 'සියය';
+/** Ordinal for 100, e.g. toWords(100, { ordinal: true }) -> 'සියවෙනි'. */
+export const ORDINAL_HUNDRED = 'සියවෙනි';

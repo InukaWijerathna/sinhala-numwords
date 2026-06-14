@@ -1,11 +1,15 @@
 import {
+  CENTS,
   CURRENCY_PREFIX,
+  DECIMAL_POINT,
+  HUNDRED,
   HUNDREDS,
   MAX_VALUE,
   NEGATIVE_PREFIX,
   ONES_COMBINING,
   ONES_STANDALONE,
   ORDINAL_FIRST,
+  ORDINAL_HUNDRED,
   ORDINAL_SUFFIX,
   ORDINAL_TEN,
   ORDINAL_UNIT,
@@ -15,6 +19,7 @@ import {
   TEN_COMBINING,
   TENS_PREFIX,
   TENS_STANDALONE,
+  YI_SUFFIX,
   ZERO,
 } from './data.js';
 
@@ -23,6 +28,8 @@ export interface ToWordsOptions {
   currency?: boolean;
   /** Render the number as an ordinal (1st, 2nd, 3rd, ...). */
   ordinal?: boolean;
+  /** Append the assertive particle 'යි' to the result, e.g. 'පහ' -> 'පහයි'. Ignored when `currency` is set, which already appends it. */
+  assert?: boolean;
 }
 
 /** Converts 1-99 to words, e.g. 35 -> 'තිස් පහ', 12 -> 'දොළහ'. */
@@ -84,7 +91,7 @@ function positiveIntegerToWords(n: number): string {
   return parts.join(' ');
 }
 
-/** Converts 1-99 to an ordinal suffix, e.g. 35 -> 'තිස් පස්වැනි'. */
+/** Converts 1-99 to an ordinal suffix, e.g. 35 -> 'තිස් පස්වෙනි'. */
 function ordinalUpTo99(n: number): string {
   if (n === 10) return ORDINAL_TEN;
   if (n < 10) return ORDINAL_UNIT[n];
@@ -96,8 +103,91 @@ function ordinalUpTo99(n: number): string {
   return `${TENS_PREFIX[tens]} ${ORDINAL_UNIT[ones]}`;
 }
 
+/** Converts a non-negative integer to words, special-casing 100 -> 'සියය'. */
+function cardinalWords(n: number): string {
+  return n === 100 ? HUNDRED : positiveIntegerToWords(n);
+}
+
+/** Converts a single digit (0-9) to its standalone word, e.g. 0 -> 'බිංදුව', 4 -> 'හතර'. */
+function digitToWords(digit: number): string {
+  return digit === 0 ? ZERO : ONES_STANDALONE[digit];
+}
+
+/**
+ * Converts a non-integer number to words: the integer part, suffixed with
+ * 'යි', followed by 'දශම' and each fractional digit (also suffixed with
+ * 'යි', except the last digit).
+ *
+ * @example
+ * decimalToWords(13.14) // 'දහතුනයි දශම එකයි හතර'
+ * decimalToWords(501.231) // 'පන්සිය එකයි දශම දෙකයි තුනයි එක'
+ */
+function decimalToWords(num: number): string {
+  const [integerPart, fractionPart] = Math.abs(num).toString().split('.');
+
+  const integerWords = `${cardinalWords(Number(integerPart))}${YI_SUFFIX}`;
+  const fractionDigits = fractionPart.split('').map(Number);
+  const fractionWords = fractionDigits
+    .map((digit, i) => {
+      const word = digitToWords(digit);
+      return i === fractionDigits.length - 1 ? word : `${word}${YI_SUFFIX}`;
+    })
+    .join(' ');
+
+  const result = `${integerWords} ${DECIMAL_POINT} ${fractionWords}`;
+  return num < 0 ? `${NEGATIVE_PREFIX} ${result}` : result;
+}
+
+/**
+ * Converts a non-integer number to its ordinal word form: like
+ * {@link decimalToWords}, but the last fractional digit is rendered as an
+ * ordinal instead of a cardinal.
+ *
+ * @example
+ * decimalOrdinalToWords(13.14) // 'දහතුනයි දශම එකයි හතරවෙනි'
+ * decimalOrdinalToWords(3.1) // 'තුනයි දශම එක්වෙනි'
+ */
+function decimalOrdinalToWords(num: number): string {
+  const [integerPart, fractionPart] = Math.abs(num).toString().split('.');
+
+  const integerWords = `${cardinalWords(Number(integerPart))}${YI_SUFFIX}`;
+  const fractionDigits = fractionPart.split('').map(Number);
+  const fractionWords = fractionDigits
+    .map((digit, i) => {
+      if (i < fractionDigits.length - 1) return `${digitToWords(digit)}${YI_SUFFIX}`;
+      return digit === 0 ? `${ZERO}${ORDINAL_SUFFIX}` : ordinalUpTo99(digit);
+    })
+    .join(' ');
+
+  const result = `${integerWords} ${DECIMAL_POINT} ${fractionWords}`;
+  return num < 0 ? `${NEGATIVE_PREFIX} ${result}` : result;
+}
+
+/**
+ * Converts a decimal currency amount to words as rupees and cents,
+ * rounding to the nearest cent.
+ *
+ * @example
+ * decimalCurrencyToWords(2550.75) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි'
+ * decimalCurrencyToWords(101) // 'රුපියල් එකසිය එකයි'
+ */
+function decimalCurrencyToWords(num: number): string {
+  const totalCents = Math.round(Math.abs(num) * 100);
+  const rupees = Math.floor(totalCents / 100);
+  const cents = totalCents % 100;
+
+  let words = `${cardinalWords(rupees)}${YI_SUFFIX}`;
+  if (cents > 0) {
+    words += ` ${CENTS} ${cardinalWords(cents)}${YI_SUFFIX}`;
+  }
+  if (num < 0) words = `${NEGATIVE_PREFIX} ${words}`;
+
+  return `${CURRENCY_PREFIX} ${words}`;
+}
+
 function positiveIntegerToOrdinalWords(n: number): string {
   if (n === 1) return ORDINAL_FIRST;
+  if (n === 100) return ORDINAL_HUNDRED;
   if (n <= 99) return ordinalUpTo99(n);
 
   const lastChunk = n % 100;
@@ -125,31 +215,37 @@ export function toWords(num: number, options: ToWordsOptions = {}): string {
   if (!Number.isFinite(num)) {
     throw new RangeError('toWords expects a finite number, got Infinity');
   }
-  if (!Number.isInteger(num)) {
-    throw new RangeError(`toWords only supports integers, got ${num}`);
-  }
-  if (Math.abs(num) > MAX_VALUE) {
+  if (Math.abs(Math.trunc(num)) > MAX_VALUE) {
     throw new RangeError(`toWords only supports numbers up to ${MAX_VALUE}`);
   }
 
   if (options.ordinal) {
+    if (!Number.isInteger(num)) {
+      const ordinal = decimalOrdinalToWords(num);
+      return finalize(options.currency ? `${CURRENCY_PREFIX} ${ordinal}` : ordinal, options);
+    }
     if (num < 1) throw new RangeError('ordinal numbers must be 1 or greater');
     const ordinal = positiveIntegerToOrdinalWords(num);
-    return options.currency ? `${CURRENCY_PREFIX} ${ordinal}` : ordinal;
+    return finalize(options.currency ? `${CURRENCY_PREFIX} ${ordinal}` : ordinal, options);
   }
 
-  const words =
-    num === 0
-      ? ZERO
-      : num < 0
-        ? `${NEGATIVE_PREFIX} ${positiveIntegerToWords(-num)}`
-        : positiveIntegerToWords(num);
+  if (!Number.isInteger(num)) {
+    const decimal = options.currency ? decimalCurrencyToWords(num) : decimalToWords(num);
+    return finalize(decimal, options);
+  }
 
-  return options.currency ? `${CURRENCY_PREFIX} ${words}` : words;
+  const words = num < 0 ? `${NEGATIVE_PREFIX} ${cardinalWords(-num)}` : cardinalWords(num);
+
+  return finalize(options.currency ? `${CURRENCY_PREFIX} ${words}${YI_SUFFIX}` : words, options);
+}
+
+/** Appends the assertive particle 'යි' when `options.assert` is set (and not already added by `currency`). */
+function finalize(result: string, options: ToWordsOptions): string {
+  return options.assert && !options.currency ? `${result}${YI_SUFFIX}` : result;
 }
 
 /** Maps every cardinal word (standalone and combining forms) to its numeric value. */
-const VALUE_MAP = new Map<string, number>([[ZERO, 0], [TEN_COMBINING, 10]]);
+const VALUE_MAP = new Map<string, number>([[ZERO, 0], [TEN_COMBINING, 10], [HUNDRED, 100]]);
 for (let i = 1; i <= 9; i++) {
   VALUE_MAP.set(ONES_STANDALONE[i], i);
   VALUE_MAP.set(ONES_COMBINING[i], i);
@@ -196,6 +292,10 @@ export function toNumber(text: string): number {
   }
   if (tokens[0] === CURRENCY_PREFIX) {
     tokens.shift();
+    const last = tokens[tokens.length - 1];
+    if (last?.endsWith(YI_SUFFIX)) {
+      tokens[tokens.length - 1] = last.slice(0, -YI_SUFFIX.length);
+    }
   }
   if (tokens.length === 0) {
     throw new SyntaxError('cannot parse an empty string');
