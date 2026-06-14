@@ -1,6 +1,6 @@
 # sinhala-numwords
 
-Convert numbers (including decimals, currency amounts, and ordinals) to Sinhala words, and back — useful for payroll slips, invoices, cheques, and legal documents.
+Convert numbers (including decimals, currency amounts, and ordinals) to Sinhala (සිංහල) words, and back — useful for payroll slips, invoices, cheques, and legal documents.
 
 ## Install
 
