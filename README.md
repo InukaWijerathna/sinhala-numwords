@@ -72,6 +72,13 @@ toWords(10, { ordinal: true }); // 'දහවෙනි'
 toWords(35, { ordinal: true }); // 'තිස් පස්වෙනි'
 ```
 
+Negative integers are prefixed with "ඍණ":
+
+```ts
+toWords(-3, { ordinal: true }); // 'ඍණ තුන්වෙනි'
+toWords(-35, { ordinal: true }); // 'ඍණ තිස් පස්වෙනි'
+```
+
 Decimal ordinals render the last fractional digit as an ordinal:
 
 ```ts
@@ -79,7 +86,7 @@ toWords(13.14, { ordinal: true }); // 'දහතුනයි දශම එකය
 toWords(3.1, { ordinal: true }); // 'තුනයි දශම එක්වෙනි'
 ```
 
-For integers, `ordinal: true` requires `num >= 1`.
+`0` has no ordinal form and throws a `RangeError` for `ordinal: true`.
 
 ### Currency amounts (`currency: true`)
 
@@ -97,8 +104,9 @@ Decimal amounts are read as rupees and cents ("ශත"), rounded to the nearest 
 toWords(2550.75, { currency: true }); // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහ'
 toWords(101.05, { currency: true }); // 'රුපියල් එකසිය එකයි ශත පහ'
 toWords(101.0, { currency: true }); // 'රුපියල් එකසිය එක' (no cents when amount is whole)
-toWords(-50.25, { currency: true }); // 'රුපියල් ඍණ පනහයි ශත විසි පහ'
 ```
+
+`currency: true` does not support negative amounts and throws a `RangeError`.
 
 Combine with `ordinal: true` to read the cents as an ordinal:
 
@@ -149,7 +157,8 @@ toWords(13.14, { ordinal: true, assert: true }); // 'දහතුනයි ද�
 | `NaN` | `TypeError` |
 | `Infinity` / `-Infinity` | `RangeError` |
 | Outside ±9,999,999,999 | `RangeError` |
-| `ordinal: true` with an integer `num < 1` | `RangeError` |
+| `ordinal: true` with `num === 0` | `RangeError` |
+| `currency: true` with a negative `num` | `RangeError` |
 
 ## `toNumber(text)`
 

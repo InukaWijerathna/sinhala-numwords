@@ -67,6 +67,15 @@ describe('toWords', () => {
     expect(toWords(35, { ordinal: true })).toBe('තිස් පස්වෙනි');
   });
 
+  it('supports negative integer ordinals', () => {
+    expect(toWords(-3, { ordinal: true })).toBe('ඍණ තුන්වෙනි');
+    expect(toWords(-35, { ordinal: true })).toBe('ඍණ තිස් පස්වෙනි');
+  });
+
+  it('rejects 0 as an ordinal', () => {
+    expect(() => toWords(0, { ordinal: true })).toThrow(RangeError);
+  });
+
   it('supports decimal ordinals', () => {
     expect(toWords(13.14, { ordinal: true })).toBe('දහතුනයි දශම එකයි හතරවෙනි');
     expect(toWords(3.1, { ordinal: true })).toBe('තුනයි දශම එක්වෙනි');
@@ -77,7 +86,6 @@ describe('toWords', () => {
   it('supports decimal currency ordinals', () => {
     expect(toWords(13.14, { currency: true, ordinal: true })).toBe('රුපියල් දහතුනයි ශත දාහතරවෙනි');
     expect(toWords(2550.75, { currency: true, ordinal: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පස්වෙනි');
-    expect(toWords(-50.25, { currency: true, ordinal: true })).toBe('රුපියල් ඍණ පනහයි ශත විසි පස්වෙනි');
   });
 
   it('supports the assert option', () => {
@@ -106,13 +114,18 @@ describe('toWords', () => {
     expect(toWords(2550.75, { currency: true })).toBe('රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහ');
     expect(toWords(101.05, { currency: true })).toBe('රුපියල් එකසිය එකයි ශත පහ');
     expect(toWords(101.0, { currency: true })).toBe('රුපියල් එකසිය එක');
-    expect(toWords(-50.25, { currency: true })).toBe('රුපියල් ඍණ පනහයි ශත විසි පහ');
   });
 
   it('rejects out-of-range numbers', () => {
     expect(() => toWords(10_000_000_000)).toThrow(RangeError);
     expect(() => toWords(Infinity)).toThrow(RangeError);
     expect(() => toWords(-Infinity)).toThrow(RangeError);
+  });
+
+  it('rejects negative numbers with the currency option', () => {
+    expect(() => toWords(-5, { currency: true })).toThrow(RangeError);
+    expect(() => toWords(-50.25, { currency: true })).toThrow(RangeError);
+    expect(() => toWords(-1, { currency: true, ordinal: true })).toThrow(RangeError);
   });
 
   it('rejects invalid input types', () => {

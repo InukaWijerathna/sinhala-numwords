@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for decimal numbers in `toWords`, read digit-by-digit after "දශම" (e.g. `13.14` -> `දහතුනයි දශම එකයි හතර`).
 - `currency: true` now accepts decimal amounts, read as rupees and cents (`ශත`), e.g. `2550.75` -> `රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහ`.
 - `currency: true` combined with `ordinal: true` now reads the cents as an ordinal, e.g. `13.14` -> `රුපියල් දහතුනයි ශත දාහතරවෙනි`.
+- `ordinal: true` now accepts negative integers, prefixed with "ඍණ", e.g. `-3` -> `ඍණ තුන්වෙනි`.
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** the hundreds-prefix word for `1` changed from `එක්සිය` to `එකසිය` (e.g. `1100` -> `එක් දහස් එකසිය`).
 - **Breaking:** `currency: true` no longer suffixes the result with "යි" by default (e.g. `2550` -> `රුපියල් දෙදහස් පන්සිය පනහ`); pass `assert: true` to get the suffixed form (`රුපියල් දෙදහස් පන්සිය පනහයි`).
 - **Breaking:** `assert: true` is now ignored when `ordinal: true` is set, since ordinal forms ("...වෙනි") are already grammatically complete (e.g. `toWords(3, { ordinal: true, assert: true })` -> `තුන්වෙනි`, not `තුන්වෙනියි`).
+- **Breaking:** `ordinal: true` with an integer now throws `RangeError` only for `num === 0` (was `num < 1`).
 - `toWords` now requires integers only for `ordinal: true`; plain and currency calls accept decimals.
 
 ## [0.0.1] - 2026-06-12

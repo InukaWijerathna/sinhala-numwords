@@ -164,8 +164,8 @@ function decimalOrdinalToWords(num: number): string {
 }
 
 /**
- * Converts a decimal currency amount to words as rupees and cents,
- * rounding to the nearest cent. The trailing 'යි' is only added when
+ * Converts a non-negative decimal currency amount to words as rupees and
+ * cents, rounding to the nearest cent. The trailing 'යි' is only added when
  * `assert` is set.
  *
  * @example
@@ -173,7 +173,7 @@ function decimalOrdinalToWords(num: number): string {
  * decimalCurrencyToWords(2550.75, true) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පහයි'
  */
 function decimalCurrencyToWords(num: number, assert: boolean): string {
-  const totalCents = Math.round(Math.abs(num) * 100);
+  const totalCents = Math.round(num * 100);
   const rupees = Math.floor(totalCents / 100);
   const cents = totalCents % 100;
 
@@ -181,28 +181,26 @@ function decimalCurrencyToWords(num: number, assert: boolean): string {
     ? `${cardinalWords(rupees)}${YI_SUFFIX} ${CENTS} ${cardinalWords(cents)}`
     : cardinalWords(rupees);
   if (assert) words += YI_SUFFIX;
-  if (num < 0) words = `${NEGATIVE_PREFIX} ${words}`;
 
   return `${CURRENCY_PREFIX} ${words}`;
 }
 
 /**
- * Converts a decimal currency amount to its ordinal word form: the rupees,
- * followed by 'ශත' and the cents rendered as an ordinal, rounding to the
- * nearest cent.
+ * Converts a non-negative decimal currency amount to its ordinal word form:
+ * the rupees, followed by 'ශත' and the cents rendered as an ordinal,
+ * rounding to the nearest cent.
  *
  * @example
  * decimalCurrencyOrdinalToWords(13.14) // 'රුපියල් දහතුනයි ශත දාහතරවෙනි'
  * decimalCurrencyOrdinalToWords(2550.75) // 'රුපියල් දෙදහස් පන්සිය පනහයි ශත හැත්තෑ පස්වෙනි'
  */
 function decimalCurrencyOrdinalToWords(num: number): string {
-  const totalCents = Math.round(Math.abs(num) * 100);
+  const totalCents = Math.round(num * 100);
   const rupees = Math.floor(totalCents / 100);
   const cents = totalCents % 100;
 
   const centsOrdinal = cents === 0 ? `${ZERO}${ORDINAL_SUFFIX}` : ordinalUpTo99(cents);
-  let words = `${cardinalWords(rupees)}${YI_SUFFIX} ${CENTS} ${centsOrdinal}`;
-  if (num < 0) words = `${NEGATIVE_PREFIX} ${words}`;
+  const words = `${cardinalWords(rupees)}${YI_SUFFIX} ${CENTS} ${centsOrdinal}`;
 
   return `${CURRENCY_PREFIX} ${words}`;
 }
@@ -240,15 +238,19 @@ export function toWords(num: number, options: ToWordsOptions = {}): string {
   if (Math.abs(Math.trunc(num)) > MAX_VALUE) {
     throw new RangeError(`toWords only supports numbers up to ${MAX_VALUE}`);
   }
+  if (options.currency && num < 0) {
+    throw new RangeError('currency amounts must not be negative');
+  }
 
   if (options.ordinal) {
     if (!Number.isInteger(num)) {
       const ordinal = options.currency ? decimalCurrencyOrdinalToWords(num) : decimalOrdinalToWords(num);
       return finalize(ordinal, options);
     }
-    if (num < 1) throw new RangeError('ordinal numbers must be 1 or greater');
-    const ordinal = positiveIntegerToOrdinalWords(num);
-    return finalize(options.currency ? `${CURRENCY_PREFIX} ${ordinal}` : ordinal, options);
+    if (num === 0) throw new RangeError('0 has no ordinal form');
+    const ordinal = positiveIntegerToOrdinalWords(Math.abs(num));
+    const signedOrdinal = num < 0 ? `${NEGATIVE_PREFIX} ${ordinal}` : ordinal;
+    return finalize(options.currency ? `${CURRENCY_PREFIX} ${signedOrdinal}` : signedOrdinal, options);
   }
 
   if (!Number.isInteger(num)) {
